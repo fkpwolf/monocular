@@ -164,7 +164,7 @@ func (c *cachedCharts) DeleteChart(repoName string, chartName string, chartVersi
 // Refresh is the interface implementation for data.Charts
 // It refreshes cached data for a specific repo and chart
 func (c *cachedCharts) RefreshChart(repoName string, chartName string) error {
-
+	log.Info("RefreshChart")
 	log.WithFields(log.Fields{
 		"path": charthelper.DataDirBase(),
 	}).Info("Using cache directory")
@@ -223,6 +223,7 @@ func (c *cachedCharts) RefreshChart(repoName string, chartName string) error {
 // Refresh is the interface implementation for data.Charts
 // It refreshes cached data for all authoritative repository+chart data
 func (c *cachedCharts) Refresh() error {
+	log.Info("Refresh")
 	// New list of charts that will replace cached charts
 	var updatedCharts = make(map[string][]*swaggermodels.ChartPackage)
 
