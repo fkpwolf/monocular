@@ -44,8 +44,10 @@ func setupChartsImplementation(conf config.Configuration, dbSession datastore.Se
 	// Setup background index refreshes
 	cacheRefreshInterval := conf.CacheRefreshInterval
 	if cacheRefreshInterval <= 0 {
-		cacheRefreshInterval = 3600
+		// cacheRefreshInterval = 3600
+		cacheRefreshInterval = 600
 	}
+	log.Printf("cacheRefreshInterval: %d", cacheRefreshInterval)
 	freshness := time.Duration(cacheRefreshInterval) * time.Second
 	periodicRefresh := cache.NewRefreshChartsData(chartsImplementation, freshness, "refresh-charts", false)
 	toDo := []jobs.Periodic{periodicRefresh}
@@ -143,6 +145,7 @@ func setupRoutes(conf config.Configuration, chartsImplementation data.Charts, he
 }
 
 func main() {
+	log.Info("Starting Monocular API server")
 	conf, err := config.GetConfig()
 	if err != nil {
 		log.WithError(err).Fatal("unable to load configuration")
