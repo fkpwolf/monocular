@@ -65,6 +65,13 @@ func (c *ChartHandlers) RefreshChart(w http.ResponseWriter, req *http.Request, p
 	renderer.Render.JSON(w, http.StatusOK, "OK")
 }
 
+// Refresh refresh cache
+func (c *ChartHandlers) Refresh(w http.ResponseWriter, req *http.Request, params handlers.Params) {
+	log.Printf("REST call refresh")
+	c.chartsImplementation.Refresh()
+	renderer.Render.JSON(w, http.StatusOK, "OK")
+}
+
 // GetChartVersion is the handler for the /charts/{repo}/{name}/versions/{version} endpoint
 func (c *ChartHandlers) GetChartVersion(w http.ResponseWriter, req *http.Request, params handlers.Params) {
 	chartPackage, err := c.chartsImplementation.ChartVersionFromRepo(params["repo"], params["chartName"], params["version"])

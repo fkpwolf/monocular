@@ -234,11 +234,13 @@ func (c *cachedCharts) Refresh() error {
 	db, closer := c.dbSession.DB()
 	defer closer()
 
+	log.Info("Connected to db")
 	repos, err := models.ListRepos(db)
 	if err != nil {
 		return err
 	}
 	for _, repo := range repos {
+		log.Info("Indexing repo " + repo.Name)
 		charts, err := repohelper.GetChartsFromRepoIndexFile(repo)
 		if err != nil {
 			return err
@@ -252,6 +254,7 @@ func (c *cachedCharts) Refresh() error {
 
 		// 3.1 - parallellize processing
 		for _, chart := range charts {
+			log.Info("Indexing chart " + *chart.Name)
 			go processChartMetadata(chart, repo.URL, ch)
 		}
 		// 3.2 Channel drain
@@ -269,6 +272,7 @@ func (c *cachedCharts) Refresh() error {
 	c.rwm.Lock()
 	c.allCharts = updatedCharts
 	c.rwm.Unlock()
+	log.Info("Refresh finished")
 	return nil
 }
 
@@ -296,6 +300,7 @@ func processChartMetadata(chart *swaggermodels.ChartPackage, repoURL string, out
 	if err != nil {
 		it.err = err
 		out <- it
+		log.Info("processChartMetadata return. Exist.")
 		return
 	}
 
@@ -324,5 +329,6 @@ func processChartMetadata(chart *swaggermodels.ChartPackage, repoURL string, out
 			}).Error("Error on DownloadAndProcessChartIcon")
 		}
 	}
+	log.Info("processChartMetadata return. Downloaded.")
 	out <- it
 }
