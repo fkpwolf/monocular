@@ -111,7 +111,7 @@ var downloadTarball = func(chart *models.ChartPackage, repoURL string) error {
 	return nil
 }
 
-var filesToKeep = []string{"README.md"}
+var filesToKeep = []string{"README.md", "values.yaml"}
 
 var extractFilesFromTarball = func(chart *models.ChartPackage) error {
 	TarballPath := TarballPath(chart)
