@@ -18,6 +18,8 @@ import (
 )
 
 var helmClient = mocks.NewMockedClient()
+
+//var helmClient = client.NewHelmClient() // direct connect test
 var helmClientBroken = mocks.NewMockedBrokenClient()
 var chartsImplementation = mocks.NewMockCharts(mocks.MockedMethods{})
 var releaseHandlers = NewReleaseHandlers(chartsImplementation, helmClient)
@@ -31,6 +33,17 @@ func validParams() releasesapi.CreateReleaseBody {
 		ChartID:      pointerto.String(chartID),
 		ChartVersion: firstChart.Version,
 	}
+}
+
+func validParamsWithValue() releasesapi.CreateReleaseBody {
+	param := validParams()
+	m1 := map[string]interface{}{
+		"replicaCount": "3", // 可以为字符串
+		"a":            "b",
+	}
+	param.ValueOverrides = m1
+	param.ReleaseName = "z-m-y"
+	return param
 }
 
 func TestGetReleases200(t *testing.T) {
@@ -56,6 +69,18 @@ func TestCreateRelease201(t *testing.T) {
 	assert.NoErr(t, err)
 	res := httptest.NewRecorder()
 	releaseHandlers.CreateRelease(res, req)
+	fmt.Println(res.Body.String())
+	assert.Equal(t, res.Code, http.StatusCreated, "expect a 201 response code")
+}
+
+func TestCreateRelease201WithValues(t *testing.T) {
+	jsonParams, err := json.Marshal(validParamsWithValue())
+	assert.NoErr(t, err)
+	req, err := http.NewRequest("POST", "/v1/releases", bytes.NewBuffer(jsonParams))
+	assert.NoErr(t, err)
+	res := httptest.NewRecorder()
+	releaseHandlers.CreateRelease(res, req)
+	fmt.Println(res.Body.String())
 	assert.Equal(t, res.Code, http.StatusCreated, "expect a 201 response code")
 }
 

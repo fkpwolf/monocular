@@ -84,6 +84,10 @@ type CreateReleaseBody struct {
 	/* Name of the new release
 	 */
 	ReleaseName string `json:"releaseName,omitempty"`
+
+	/* customized values
+	 */
+	ValueOverrides interface{} `json:"valueOverrides,omitempty"`
 }
 
 // Validate validates this create release body
