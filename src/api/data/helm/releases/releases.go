@@ -1,6 +1,8 @@
 package releases
 
 import (
+	"encoding/json"
+
 	log "github.com/Sirupsen/logrus"
 	releasesapi "github.com/kubernetes-helm/monocular/src/api/swagger/restapi/operations/releases"
 	"k8s.io/helm/pkg/helm"
@@ -54,10 +56,18 @@ func InstallRelease(client *helm.Client, chartPath string, params releasesapi.Cr
 		ns = "default"
 	}
 
+	valueOverridesString := []byte{}
+	jsonString, err := json.Marshal(params.Data.ValueOverrides)
+	if err == nil {
+		valueOverridesString = []byte(jsonString)
+	}
+
+	log.Info("valueOverridesString:", string(valueOverridesString))
+
 	return client.InstallRelease(
 		chartPath,
 		ns,
-		helm.ValueOverrides([]byte{}),
+		helm.ValueOverrides(valueOverridesString),
 		helm.ReleaseName(params.Data.ReleaseName),
 		helm.InstallDryRun(params.Data.DryRun))
 }
