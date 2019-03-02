@@ -40,12 +40,14 @@ func setupChartsImplementation(conf config.Configuration, dbSession datastore.Se
 
 	chartsImplementation := cache.NewCachedCharts(dbSession)
 	// Run foreground repository refresh
-	chartsImplementation.Refresh()
+	log.Info("enabled foreground repository refresh")
+	go chartsImplementation.Refresh()
 	// Setup background index refreshes
 	cacheRefreshInterval := conf.CacheRefreshInterval
 	if cacheRefreshInterval <= 0 {
 		cacheRefreshInterval = 3600
 	}
+	log.Printf("cacheRefreshInterval: %d", cacheRefreshInterval)
 	freshness := time.Duration(cacheRefreshInterval) * time.Second
 	periodicRefresh := cache.NewRefreshChartsData(chartsImplementation, freshness, "refresh-charts", false)
 	toDo := []jobs.Periodic{periodicRefresh}
@@ -85,6 +87,7 @@ func setupRoutes(conf config.Configuration, chartsImplementation data.Charts, he
 	apiv1.Methods("GET").Path("/charts/{repo}").Handler(handlers.WithParams(chartHandlers.GetChartsInRepo))
 	apiv1.Methods("GET").Path("/charts/{repo}/{chartName}").Handler(handlers.WithParams(chartHandlers.GetChart))
 	apiv1.Methods("POST").Path("/charts/{repo}/{chartName}/refresh").Handler(handlers.WithParams(chartHandlers.RefreshChart))
+	apiv1.Methods("POST").Path("/refresh").Handler(handlers.WithParams(chartHandlers.Refresh))
 
 	// Chart Version routes
 	apiv1.Methods("GET").Path("/charts/{repo}/{chartName}/versions").Handler(handlers.WithParams(chartHandlers.GetChartVersions))
@@ -143,6 +146,7 @@ func setupRoutes(conf config.Configuration, chartsImplementation data.Charts, he
 }
 
 func main() {
+	log.Info("Starting Monocular API server")
 	conf, err := config.GetConfig()
 	if err != nil {
 		log.WithError(err).Fatal("unable to load configuration")
